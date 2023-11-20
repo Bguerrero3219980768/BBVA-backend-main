@@ -45,4 +45,15 @@ public class BillController {
         return null;
     }
 
+    @PostMapping
+    public User postUsers(@PathVariable String username,@PathVariable String pass,@RequestBody User user) {
+        Optional<User> userCurrent = userRepo.findByUsername(username);
+        if(userCurrent.isPresent()){
+            User userReturn = userCurrent.get();
+            if(userReturn.getPass().equals(pass)){
+              return userReturn;}
+        }
+        return null;
+    }
+
 }
