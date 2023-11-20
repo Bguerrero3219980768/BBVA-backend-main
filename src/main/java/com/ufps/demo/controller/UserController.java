@@ -3,43 +3,83 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package com.ufps.demo.controller;
-import com.ufps.demo.model.User;
-import com.ufps.demo.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-
+import java.io.IOException;
+import java.sql.SQLException;
 import java.util.List;
-import java.util.Optional;
 
-@CrossOrigin(origins = "*", allowedHeaders = "*")
-@RestController
-@RequestMapping("/user")
-public class UserController {
-        @Autowired
-    UserRepository userRepo;
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
-    @GetMapping
-    public List<User> getUserAll() {
-        return userRepo.findAll();
+import co.banco.test.dao.UsersDao;
+import co.banco.test.modelo.Users;
+
+@WebServlet("/")
+public class UsuarioServlet extends HttpServlet {
+    private static final long serialVersionUID = 1L;
+    private UsersDao usersDao;
+
+    public UsuarioServlet() {
+        super();
     }
 
-    @GetMapping("/{id}")
-    public User getUsersbyId(@PathVariable Integer id) {
-        Optional<User> user = userRepo.findById(id);
+    public void init() throws ServletException {
+        this.usersDao = UsuarioDaoFactory.getUsuarioDao("mysql");
+    }
 
-        if (user.isPresent()) {
-            return user.get();
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) 
+            throws ServletException, IOException {
+        String action = request.getServletPath();
+        try {
+            switch (action) {
+                case "/new":
+                    showNewForm(request, response);
+                    break;
+                case "/insert":
+                    insertarUsuario(request, response);
+                    break;
+                case "/delete":
+                    eliminarUsuario(request, response);
+                    break;
+                case "/edit":
+                    showEditForm(request, response);
+                    break;
+                case "/update":
+                    actualizarUsuario(request, response);
+                    break;
+                default:
+                    listUsuarios(request, response);
+                    break;
+            }
+        } catch (SQLException e) {
+            throw new ServletException(e);
         }
+    }
 
-        return null;
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) 
+            throws ServletException, IOException {
+        doGet(request, response);
+    }
+
+    private void showNewForm(HttpServletRequest request, HttpServletResponse response) 
+            throws ServletException, IOException {
+        RequestDispatcher dispatcher = request.getRequestDispatcher("users.jsp");
+        dispatcher.forward(request, response);
+    }
+
+    private void insertarUsuario(HttpServletRequest request, HttpServletResponse response) 
+            throws ServletException, SQLException, IOException {
+        String username = request.getParameter("username");
+        String password = request.getParameter("password");
+        String email = request.getParameter("email");
+        
+        Users users = new Users(username, password, email);
+        usersDao.insert(users);
+        
+        response.sendRedirect("list");
     }
 }
+
