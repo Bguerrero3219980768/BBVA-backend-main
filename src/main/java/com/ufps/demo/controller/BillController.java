@@ -4,57 +4,46 @@
  */
 package com.ufps.demo.controller;
 
+import java.io.IOException;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
-import com.ufps.demo.model.Bill;
-import com.ufps.demo.repository.BillRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import co.banco.test.modelo.Bill;
 
+@WebServlet({ "/SendEmail", "/EnviarEmail" })
+public class FacturaServlet extends HttpServlet {
+    private static final long serialVersionUID = 1L;
 
-import java.util.List;
-import java.util.Optional;
-
-@CrossOrigin(origins = "*", allowedHeaders = "*")
-@RestController
-@RequestMapping("/users/{user_id}/bills")
-public class BillController {
-    @Autowired
-    BillRepository billRepo;
-
-    @GetMapping
-    public List<Bill> getBillAll() {
-        return billRepo.findAll();
-    }
-    
-    @GetMapping("/{id}")
-    public Bill getBillsbyId(@PathVariable Integer id) {
-        Optional<Bill> bill = billRepo.findById(id);
-
-        if (bill.isPresent()) {
-            return bill.get();
-        }
-
-        return null;
+    public FacturaServlet() {
+        super();
     }
 
-    @PostMapping
-    public User postUsers(@PathVariable String username,@PathVariable String pass,@RequestBody User user) {
-        Optional<User> userCurrent = userRepo.findByUsername(username);
-        if(userCurrent.isPresent()){
-            User userReturn = userCurrent.get();
-            if(userReturn.getPass().equals(pass)){
-              return userReturn;}
-        }
-        return null;
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) 
+            throws ServletException, IOException {
+        response.getWriter().append("<table><tr><th>Encabezado 1</th><th>Encabezado 2</th></tr></table>")
+            .append("<tr><td>" + request.getContextPath() + "</td><td>Algo</td></tr>")
+            .append("</table>");
     }
-    
 
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) 
+            throws ServletException, IOException {
+        
+        String date = request.getParameter("date");
+        String user_id = request.getParameter("user_id");
+        String value = request.getParameter("value");
+        String type = request.getParameter("type");
+        String observation = request.getParameter("observation");
+        
+        Bill b = new Bill();
+        b.setDate(date);
+        b.setUser_Id(user_id);
+        b.setValue(value);
+        b.setType(type);
+        b.setObservation(observation);
+        
+        response.sendRedirect("list");
+    }
 }
